@@ -1,5 +1,11 @@
 import calculate from './calculate';
 import { expect } from 'chai';
+import chai from 'chai';
+
+// https://github.com/chaijs/chai/issues/469
+chai.config.truncateThreshold = 0;
+
+const expected = chai.expect;
 
 function pressButtons(buttons) {
     const value = {};
@@ -20,65 +26,134 @@ function expectButtons(buttons, expectation) {
     expect(pressButtons(buttons)).to.deep.equal(expectation);
 }
 
-it('should support 6', () => {
-    expectButtons(['6'], { next: '6' });
-});
+function test(buttons, expectation, only = false) {
+    const func = only ? it.only : it;
+    func(`buttons ${buttons.join(',')} -> ${JSON.stringify(expectation)}`, () => {
+        expectButtons(buttons, expectation);
+    });
+}
 
-it('should support 66', () => {
-    expectButtons(['6', '6'], { next: '66' });
-});
+describe('calculate', function () {
+    test(['6'], { next: '6' });
 
-it('should support 6 + 6', () => {
-    expectButtons(['6', '+', '6'], {
+    test(['6', '6'], { next: '66' });
+
+    test(['6', '+', '6'], {
         next: '6',
         total: '6',
         operation: '+',
     });
-});
 
-it('should support 6 + 6 =', () => {
-    expectButtons(['6', '+', '6', '='], {
+    test(['6', '+', '6', '='], {
         total: '12',
     });
-});
 
-it('should support 00 + 0 =', () => {
-    expectButtons(['0', '0', '+', '0', '='], {
+    test(['0', '0', '+', '0', '='], {
         total: '0',
     });
-});
 
-it('should support 6 + 6 = 9', () => {
-    expectButtons(['6', '+', '6', '=', '9'], {
+    test(['6', '+', '6', '=', '9'], {
         next: '9',
     });
-});
 
-it('should support 3 + 6 = +', () => {
-    expectButtons(['3', '+', '6', '=', '+'], {
+    test(['3', '+', '6', '=', '+'], {
         total: '9',
         operation: '+',
     });
-});
 
-it('should support 3 + 6 = + 9', () => {
-    expectButtons(['3', '+', '6', '=', '+', '9'], {
+    test(['3', '+', '6', '=', '+', '9'], {
         total: '9',
         operation: '+',
         next: '9',
     });
-});
 
-it('should support 3 + 6 = + 9 =', () => {
-    expectButtons(['3', '+', '6', '=', '+', '9', '='], {
+    test(['3', '+', '6', '=', '+', '9', '='], {
         total: '18',
     });
-});
 
-it('should support 3 + = 3 =', () => {
     // When '=' is pressed and there is not enough information to complete
     // an operation, the '=' should be disregarded.
-    expectButtons(['3', '+', '=', '3', '='], {
+    test(['3', '+', '=', '3', '='], {
         total: '6',
+    });
+
+    test(['+'], {
+        operation: '+',
+    });
+
+    test(['+', '2'], {
+        next: '2',
+        operation: '+',
+    });
+
+    test(['+', '2', '+'], {
+        total: '2',
+        operation: '+',
+    });
+
+    test(['+', '2', '+', '+'], {
+        total: '2',
+        operation: '+',
+    });
+
+    test(['+', '2', '+', '5'], {
+        next: '5',
+        total: '2',
+        operation: '+',
+    });
+
+    test(['+', '2', '5'], {
+        next: '25',
+        operation: '+',
+    });
+
+    test(['+', '2', '5'], {
+        next: '25',
+        operation: '+',
+    });
+
+    test(['+', '6', '+', '5', '='], {
+        total: '11',
+    });
+
+    test(['0', '.', '4'], {
+        next: '0.4',
+    });
+
+    test(['.', '4'], {
+        next: '0.4',
+    });
+
+    test(['.', '4', '-', '.', '2'], {
+        total: '0.4',
+        next: '0.2',
+        operation: '-',
+    });
+
+    test(['.', '4', '-', '.', '2', '='], {
+        total: '0.2',
+    });
+
+    // should clear the operator when AC is pressed
+    test(['1', '+', '2', 'AC'], {});
+    test(['+', '2', 'AC'], {});
+
+    test(['4', '%'], {
+        next: '0.04',
+    });
+
+    test(['4', '%', 'x', '2', '='], {
+        total: '0.08',
+    });
+
+    test(['4', '%', 'x', '2'], {
+        total: '0.04',
+        operation: 'x',
+        next: '2',
+    });
+
+    // the percentage sign should also act as '='
+    test(['2', 'x', '2', '%'], {
+        total: '0.04',
     });
 });

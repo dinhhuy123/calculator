@@ -13,15 +13,23 @@ class Button extends Component {
     render() {
         // console.log(this.props.name);
         return (
-            <button className={cx('component-button')} onClick={this.handleClick}>
-                {this.props.name}
-            </button>
+            <div
+                className={cx(
+                    'component-button',
+                    `${this.props.orange ? 'orange' : ''}`,
+                    `${this.props.wide ? 'wide' : ''}`,
+                )}
+            >
+                <button onClick={this.handleClick}>{this.props.name}</button>
+            </div>
         );
     }
 }
 
 Button.propTypes = {
     name: PropTypes.string.isRequired,
+    orange: PropTypes.bool,
+    wide: PropTypes.bool,
     clickHandler: PropTypes.func.isRequired,
 };
 

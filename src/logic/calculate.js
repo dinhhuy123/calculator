@@ -1,5 +1,6 @@
 import operate from './operate';
 import isNumber from './isNumber';
+import Big from 'big.js';
 
 /**
  * Given a button name and a calculator data object, return an updated
@@ -41,6 +42,23 @@ function calculate(obj, buttonName) {
             next: buttonName,
             total: null,
         };
+    }
+
+    if (buttonName === '%') {
+        if (obj.operation && obj.next) {
+            const result = operate(obj.total, obj.next, obj.operation);
+            return {
+                total: Big(result).div(Big('100')).toString(),
+                next: null,
+                operation: null,
+            };
+        }
+        if (obj.next) {
+            return {
+                next: Big(obj.next).div(Big('100')).toString(),
+            };
+        }
+        return {};
     }
 
     if (buttonName === '.') {
