@@ -11,7 +11,6 @@ class Button extends Component {
     };
 
     render() {
-        // console.log(this.props.name);
         return (
             <div
                 className={cx(
